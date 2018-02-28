@@ -92,11 +92,117 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
     }
 
 
+<<<<<<< HEAD
     override fun onGameStart() {
         preSelfCoords.set(if (isErangel) spawnErangel else spawnDesert)
         selfCoords.set(preSelfCoords)
         preDirection.setZero()
 
+=======
+fun Float.d(n: Int) = String.format("%.${n}f", this)
+class GLMap : InputAdapter(), ApplicationListener, GameListener {
+  companion object {
+    operator fun Vector3.component1(): Float = x
+    operator fun Vector3.component2(): Float = y
+    operator fun Vector3.component3(): Float = z
+    operator fun Vector2.component1(): Float = x
+    operator fun Vector2.component2(): Float = y
+
+    val spawnErangel = Vector2(795548.3f, 17385.875f)
+    val spawnDesert = Vector2(78282f, 731746f)
+  }
+
+  init {
+    register(this)
+  }
+
+  override fun onGameStart() {
+    preSelfCoords.set(if (isErangel) spawnErangel else spawnDesert)
+    selfCoords.set(preSelfCoords)
+    preDirection.setZero()
+  }
+
+  override fun onGameOver() {
+    camera.zoom = 1 / 4f
+
+    aimStartTime.clear()
+    attackLineStartTime.clear()
+    pinLocation.setZero()
+  }
+
+  fun show() {
+    val config = Lwjgl3ApplicationConfiguration()
+    config.setTitle("[${targetAddr.hostAddress} ${sniffOption.name}] - PUBG Radar")
+    config.useOpenGL3(true, 3, 3)
+    config.setWindowedMode(1000, 1000)
+    config.setResizable(true)
+    config.setBackBufferConfig(8, 8, 8, 8, 32, 0, 8)
+    Lwjgl3Application(this, config)
+  }
+
+  lateinit var spriteBatch: SpriteBatch
+  lateinit var shapeRenderer: ShapeRenderer
+  // lateinit var mapErangel: Texture
+  // lateinit var mapMiramar: Texture
+  lateinit var mapErangelTiles: MutableMap<String, MutableMap<String, MutableMap<String, Texture>>>
+  lateinit var mapMiramarTiles: MutableMap<String, MutableMap<String, MutableMap<String, Texture>>>
+  lateinit var mapTiles: MutableMap<String, MutableMap<String, MutableMap<String, Texture>>>
+  lateinit var iconImages: Icons
+  // lateinit var map: Texture
+  lateinit var largeFont: BitmapFont
+  lateinit var littleFont: BitmapFont
+  lateinit var nameFont: BitmapFont
+  lateinit var itemFont: BitmapFont
+  lateinit var fontCamera: OrthographicCamera
+  lateinit var itemCamera: OrthographicCamera
+  lateinit var camera: OrthographicCamera
+  lateinit var alarmSound: Sound
+
+  val tileZooms = listOf("256", "512", "1024", "2048", "4096"/*, "8192"*/)
+  val tileRowCounts = listOf(1, 2, 4, 8, 16/*, 32*/)
+  val tileSizes = listOf(819200f, 409600f, 204800f, 102400f, 51200f/*, 25600f*/)
+
+  val layout = GlyphLayout()
+  var windowWidth = initialWindowWidth
+  var windowHeight = initialWindowWidth
+
+  val aimStartTime = HashMap<NetworkGUID, Long>()
+  val attackLineStartTime = LinkedList<Triple<NetworkGUID, NetworkGUID, Long>>()
+  val pinLocation = Vector2()
+
+  var dragging = false
+  var prevScreenX = -1f
+  var prevScreenY = -1f
+  var screenOffsetX = 0f
+  var screenOffsetY = 0f
+
+  fun Vector2.windowToMap() =
+      Vector2(selfCoords.x + (x - windowWidth / 2.0f) * camera.zoom * windowToMapUnit + screenOffsetX,
+              selfCoords.y + (y - windowHeight / 2.0f) * camera.zoom * windowToMapUnit + screenOffsetY)
+
+  fun Vector2.mapToWindow() =
+      Vector2((x - selfCoords.x - screenOffsetX) / (camera.zoom * windowToMapUnit) + windowWidth / 2.0f,
+              (y - selfCoords.y - screenOffsetY) / (camera.zoom * windowToMapUnit) + windowHeight / 2.0f)
+
+  override fun scrolled(amount: Int): Boolean {
+    camera.zoom *= 1.1f.pow(amount)
+    return true
+  }
+
+  override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+    if (button == RIGHT) {
+      pinLocation.set(pinLocation.set(screenX.toFloat(), screenY.toFloat()).windowToMap())
+      println(pinLocation)
+      return true
+    } else if (button == LEFT) {
+      dragging = true
+      prevScreenX = screenX.toFloat()
+      prevScreenY = screenY.toFloat()
+      return true
+    } else if (button == MIDDLE) {
+      screenOffsetX = 0f
+      screenOffsetY = 0f
+>>>>>>> 6fb668ca95274bdc20c0b1f3f39a2b01d909dce8
     }
 
     override fun onGameOver() {
@@ -395,7 +501,6 @@ class GLMap : InputAdapter(), ApplicationListener, GameListener {
 
         shapeRenderer.projectionMatrix = camera.combined
         Gdx.gl.glEnable(GL20.GL_BLEND)
-
 
         drawCircles()
 
